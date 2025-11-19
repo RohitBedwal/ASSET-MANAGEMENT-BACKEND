@@ -32,7 +32,7 @@ const corsOptions = {
     'http://localhost:3000',
     'http://localhost:5173',
     'http://localhost:5174',
-    process.env.FRONTEND_URL || 'https://your-frontend.onrender.com', // Add your deployed frontend URL
+    process.env.FRONTEND_URL || 'https://assetsmanagement.onrender.com/', // Add your deployed frontend URL
   ],
   credentials: true,
   optionsSuccessStatus: 200
