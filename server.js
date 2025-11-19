@@ -26,31 +26,44 @@ connectDB();
 // Initialize Express app
 const app = express();
 
-// CORS Configuration - Updated for production
+// CORS Configuration - FIXED
 const corsOptions = {
-  origin: [
-    'http://localhost:3000',
-    'http://localhost:5173',
-    'http://localhost:5174',
-    process.env.FRONTEND_URL || 'https://assetsmanagement.onrender.com/', // Add your deployed frontend URL
-  ],
+  origin: function (origin, callback) {
+    const allowedOrigins = [
+      'http://localhost:3000',
+      'http://localhost:5173',
+      'http://localhost:5174',
+      'https://assetsmanagement.onrender.com', // ✅ Your frontend URL
+      'https://asset-management-backend-sf3e.onrender.com', // ✅ Your backend URL
+      process.env.FRONTEND_URL
+    ];
+    
+    // Allow requests with no origin (like mobile apps, Postman, curl)
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   optionsSuccessStatus: 200
 };
 
 // Middleware
-app.use(cors(corsOptions)); // Enable Cross-Origin requests with specific origins
+app.use(cors(corsOptions)); // Enable Cross-Origin requests
 app.use(express.json()); // Parse incoming JSON bodies
-app.use(morgan('dev')); // Log all HTTP requests (useful in dev mode)
+app.use(morgan('dev')); // Log all HTTP requests
 
-// Content Security Policy headers (Fix CSP error)
-app.use((req, res, next) => {
-  res.setHeader(
-    'Content-Security-Policy',
-    "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline';"
-  );
-  next();
-});
+// Remove CSP headers for now (they might be interfering)
+// app.use((req, res, next) => {
+//   res.setHeader(
+//     'Content-Security-Policy',
+//     "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline';"
+//   );
+//   next();
+// });
 
 // Root route
 app.get('/', (req, res) => {
@@ -78,14 +91,7 @@ app.use("/api/categories", categoryRoutes);
 app.use("/api/devices", deviceRoutes);
 app.use("/api/vendors", vendorRoutes);
 
-// Optional: Add route aliases without /api prefix (if you want both to work)
-// Uncomment these if you want /devices to work in addition to /api/devices
-// app.use('/devices', deviceRoutes);
-// app.use('/categories', categoryRoutes);
-// app.use('/vendors', vendorRoutes);
-// app.use('/auth', authRoutes);
-
-// 404 Route Handler - Improved error message
+// 404 Route Handler
 app.use((req, res, next) => {
   res.status(404).json({ 
     success: false,
@@ -108,7 +114,7 @@ app.use((err, req, res, next) => {
 
 // Server listening
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`✅ Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
   console.log(`🌍 Server URL: http://localhost:${PORT}`);
 });
@@ -117,6 +123,4 @@ app.listen(PORT, () => {
 process.on('unhandledRejection', (err) => {
   console.error('❌ Unhandled Rejection:', err.message);
   console.error(err.stack);
-  // Close server & exit process
-  process.exit(1);
 });
