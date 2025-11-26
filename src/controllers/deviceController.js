@@ -1,5 +1,6 @@
 import Device from "../models/deviceModel.js";
 import Category from "../models/categoryModel.js";
+import { io } from "../../server.js"; // ⭐ Import Socket.IO
 
 // @desc Add Device
 // @route POST /api/devices
@@ -26,30 +27,25 @@ export const addDevice = async (req, res) => {
       categoryId,
     } = req.body;
 
-    // Required fields validation
     if (!sku || !serial || !categoryId) {
       return res.status(400).json({ message: "SKU, Serial & CategoryId are required" });
     }
 
-    // Ensure category exists
     const categoryExists = await Category.findById(categoryId);
     if (!categoryExists) {
       return res.status(404).json({ message: "Category not found" });
     }
 
-    // Unique SKU validation
     const existSku = await Device.findOne({ sku });
     if (existSku) {
       return res.status(400).json({ message: "SKU already exists" });
     }
 
-    // Unique Serial validation
     const existSerial = await Device.findOne({ serial });
     if (existSerial) {
       return res.status(400).json({ message: "Serial number already exists" });
     }
 
-    // Create new device
     const device = await Device.create({
       sku,
       serial,
@@ -71,7 +67,17 @@ export const addDevice = async (req, res) => {
       categoryId,
     });
 
-    res.status(201).json(device);
+    // 🔔 Emit real-time notification
+    io.emit("notification", {
+      title: "New Device Added",
+      message: `${device.sku} added under ${categoryExists.name}`,
+      category: categoryExists.name,
+      timestamp: new Date().toISOString(),
+      type: "device_added",
+    });
+
+    return res.status(201).json(device);
+
   } catch (error) {
     console.error("Add Device Error:", error);
     res.status(500).json({ message: error.message });
