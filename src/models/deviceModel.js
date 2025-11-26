@@ -7,38 +7,47 @@ const deviceSchema = new mongoose.Schema(
       required: [true, "SKU code is required"],
       unique: true,
     },
-    type: {
-      type: String,
-      required: [true, "Device type is required"],
-    },
+
     serial: {
       type: String,
       required: [true, "Serial number is required"],
       unique: true,
     },
-    assignedTo: {
-      type: String,
-      default: null,
-    },
-    warrantyEndDate: { type: String },
+
+    // ✔ inward/outward used for inventory movement tracking
     status: {
       type: String,
       enum: ["inward", "outward"],
       default: "inward",
     },
-    projectName: {
-      type: String,
-      default: null,
-    },
-    assignedDate: {
-      type: String,
-      default: null,
-    },
+
+    assignedTo: { type: String, default: null },
+    projectName: { type: String, default: null },
+    assignedDate: { type: Date, default: null },
+
     categoryId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Category",
       required: [true, "Category ID is required"],
     },
+
+    vendor: { type: String, default: null },
+    purchaseOrderNumber: { type: String, default: null },
+    purchaseDate: { type: Date, default: null },
+    warrantyEndDate: { type: Date, default: null },
+    amcExpiryDate: { type: Date, default: null },
+
+    ipAddress: { type: String, default: null },
+    macAddress: { type: String, default: null },
+    firmwareOSVersion: { type: String, default: null },
+
+    installedAtSite: { type: String, default: null },
+
+    rackId: { type: String, default: null },
+    rackUnit: { type: Number, default: null },
+    dataCenter: { type: String, default: null },
+
+    notes: { type: String, default: null },
   },
   { timestamps: true }
 );

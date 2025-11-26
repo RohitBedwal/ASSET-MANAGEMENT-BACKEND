@@ -1,52 +1,84 @@
 import Device from "../models/deviceModel.js";
 import Category from "../models/categoryModel.js";
 
-// 🟢 Add new device
+// @desc Add Device
+// @route POST /api/devices
 export const addDevice = async (req, res) => {
   try {
-    const { type, serial, assignedTo, categoryId } = req.body;
+    const {
+      sku,
+      serial,
+      status,
+      assignedTo,
+      purchaseDate,
+      warrantyEndDate,
+      amcExpiryDate,
+      vendor,
+      purchaseOrderNumber,
+      installedAtSite,
+      ipAddress,
+      macAddress,
+      firmwareOSVersion,
+      rackId,
+      rackUnit,
+      dataCenter,
+      notes,
+      categoryId,
+    } = req.body;
 
-    // 🔹 Validate required fields
-    if (!type || !serial || !categoryId) {
-      return res.status(400).json({ message: "Missing required fields" });
+    // Required fields validation
+    if (!sku || !serial || !categoryId) {
+      return res.status(400).json({ message: "SKU, Serial & CategoryId are required" });
     }
 
-    // 🔹 Check if category exists
+    // Ensure category exists
     const categoryExists = await Category.findById(categoryId);
     if (!categoryExists) {
       return res.status(404).json({ message: "Category not found" });
     }
 
-    // 🔹 Prevent duplicate serial numbers
-    const existing = await Device.findOne({ serial });
-    if (existing) {
-      return res
-        .status(400)
-        .json({ message: "Device with this serial already exists" });
+    // Unique SKU validation
+    const existSku = await Device.findOne({ sku });
+    if (existSku) {
+      return res.status(400).json({ message: "SKU already exists" });
     }
 
-    // 🔹 Generate SKU (unique internal ID)
-    const skuPrefix = (type || "GEN").substring(0, 3).toUpperCase();
-    const sku = `${skuPrefix}-${Math.floor(Math.random() * 900 + 100)}`;
+    // Unique Serial validation
+    const existSerial = await Device.findOne({ serial });
+    if (existSerial) {
+      return res.status(400).json({ message: "Serial number already exists" });
+    }
 
-    // 🔹 Create new device
+    // Create new device
     const device = await Device.create({
       sku,
-      type,
       serial,
+      status,
       assignedTo,
+      purchaseDate,
+      warrantyEndDate,
+      amcExpiryDate,
+      vendor,
+      purchaseOrderNumber,
+      installedAtSite,
+      ipAddress,
+      macAddress,
+      firmwareOSVersion,
+      rackId,
+      rackUnit,
+      dataCenter,
+      notes,
       categoryId,
-      status: "inward", // default
     });
 
     res.status(201).json(device);
   } catch (error) {
-    console.error("Error adding device:", error);
+    console.error("Add Device Error:", error);
     res.status(500).json({ message: error.message });
   }
 };
 
-// 🟣 Get all devices (optional filter by category)
+// @desc Get devices (optionally filtered by category)
 export const getDevices = async (req, res) => {
   try {
     const { categoryId } = req.query;
@@ -59,61 +91,37 @@ export const getDevices = async (req, res) => {
   }
 };
 
-// 🟡 Get single device by ID
+// @desc Get device by ID
 export const getDeviceById = async (req, res) => {
   try {
-    const device = await Device.findById(req.params.id).populate(
-      "categoryId",
-      "name"
-    );
-    if (!device) {
-      return res.status(404).json({ message: "Device not found" });
-    }
+    const device = await Device.findById(req.params.id).populate("categoryId", "name");
+    if (!device) return res.status(404).json({ message: "Device not found" });
+
     res.json(device);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-// 🟠 Update device (assign/unassign)
+// @desc Update device
 export const updateDevice = async (req, res) => {
   try {
-    const device = await Device.findById(req.params.id);
-    if (!device) return res.status(404).json({ message: "Device not found" });
+    const updated = await Device.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!updated) return res.status(404).json({ message: "Device not found" });
 
-    const { projectName, assignedDate, status } = req.body;
-
-    // Auto calculate warranty end date when assigning
-    let warrantyEndDate = device.warrantyEndDate;
-    if (assignedDate) {
-      const date = new Date(assignedDate);
-      date.setFullYear(date.getFullYear() + 1);
-      warrantyEndDate = date.toISOString().split("T")[0];
-    }
-
-    device.status = status || device.status;
-    device.projectName = projectName || null;
-    device.assignedDate = assignedDate || null;
-    device.warrantyEndDate = warrantyEndDate || null;
-
-    const updated = await device.save();
     res.json(updated);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-
-// 🔴 Delete device
+// @desc Delete device
 export const deleteDevice = async (req, res) => {
   try {
-    const device = await Device.findById(req.params.id);
-    if (!device) {
-      return res.status(404).json({ message: "Device not found" });
-    }
+    const deleted = await Device.findByIdAndDelete(req.params.id);
+    if (!deleted) return res.status(404).json({ message: "Device not found" });
 
-    await device.deleteOne();
-    res.json({ message: "Device removed successfully" });
+    res.json({ message: "Device removed" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
