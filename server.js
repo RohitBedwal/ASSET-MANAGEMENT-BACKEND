@@ -14,6 +14,7 @@ import categoryRoutes from "./src/routes/categoryRoutes.js";
 import deviceRoutes from "./src/routes/deviceRoutes.js";
 import vendorRoutes from "./src/routes/vendorRoutes.js";
 import notificationRoutes from "./src/routes/notificationRoutes.js";
+import rmaRoutes from "./src/routes/rmaRoutes.js";
 
 import { Server } from "socket.io"; // ⭐ Socket.IO
 
@@ -44,7 +45,11 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
+
+// Serve static files from uploads directory
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // ⭐ Initialize Socket.IO
 const io = new Server(server, {
@@ -86,6 +91,7 @@ app.use("/api/categories", categoryRoutes);
 app.use("/api/devices", deviceRoutes);
 app.use("/api/vendors", vendorRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/rma", rmaRoutes);
 
 // 404 Handler
 app.use((req, res) => {

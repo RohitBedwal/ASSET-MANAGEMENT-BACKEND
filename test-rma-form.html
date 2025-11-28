@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RMA Submission Form - Test</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+      padding: 40px;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 28px;
+    }
+
+    .subtitle {
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #333;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    label .required {
+      color: #e74c3c;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: border-color 0.3s;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .file-input-wrapper {
+      position: relative;
+      margin-bottom: 10px;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    .file-label {
+      display: inline-block;
+      padding: 10px 20px;
+      background: #f0f0f0;
+      border: 2px dashed #ccc;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s;
+      width: 100%;
+      text-align: center;
+    }
+
+    .file-label:hover {
+      background: #e8e8e8;
+      border-color: #667eea;
+    }
+
+    .file-name {
+      display: block;
+      margin-top: 8px;
+      font-size: 12px;
+      color: #666;
+    }
+
+    .btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 14px 32px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      width: 100%;
+      margin-top: 20px;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .response {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 8px;
+      display: none;
+    }
+
+    .response.success {
+      background: #d4edda;
+      border: 1px solid #c3e6cb;
+      color: #155724;
+    }
+
+    .response.error {
+      background: #f8d7da;
+      border: 1px solid #f5c6cb;
+      color: #721c24;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 600px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .container {
+        padding: 20px;
+      }
+    }
+
+    .file-info {
+      font-size: 11px;
+      color: #999;
+      margin-top: 5px;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 20px;
+      display: none;
+    }
+
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #667eea;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔧 RMA Submission Form</h1>
+    <p class="subtitle">Return Merchandise Authorization - Submit your device return request</p>
+
+    <form id="rmaForm" enctype="multipart/form-data">
+      <div class="grid">
+        <div class="form-group">
+          <label>Serial Number <span class="required">*</span></label>
+          <input type="text" id="serialNumber" name="serialNumber" required placeholder="e.g., SN12345">
+        </div>
+
+        <div class="form-group">
+          <label>RMA Type <span class="required">*</span></label>
+          <select id="rmaType" name="rmaType" required>
+            <option value="">Select Type</option>
+            <option value="repair">Repair</option>
+            <option value="replacement">Replacement</option>
+            <option value="refund">Refund</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Issue Description <span class="required">*</span></label>
+        <textarea id="issueDescription" name="issueDescription" required placeholder="Describe the issue with the device..."></textarea>
+      </div>
+
+      <div class="grid">
+        <div class="form-group">
+          <label>Your Name <span class="required">*</span></label>
+          <input type="text" id="reportedBy" name="reportedBy" required placeholder="John Doe">
+        </div>
+
+        <div class="form-group">
+          <label>Priority</label>
+          <select id="priority" name="priority">
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
+            <option value="high">High</option>
+            <option value="critical">Critical</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="reportedByEmail" name="reportedByEmail" placeholder="john@example.com">
+        </div>
+
+        <div class="form-group">
+          <label>Phone</label>
+          <input type="tel" id="reportedByPhone" name="reportedByPhone" placeholder="+1234567890">
+        </div>
+      </div>
+
+      <h3 style="margin: 30px 0 15px; color: #333;">📎 Attachments</h3>
+
+      <div class="form-group">
+        <label>Invoice (PDF/Image)</label>
+        <div class="file-input-wrapper">
+          <input type="file" id="invoice" name="invoice" accept=".pdf,.jpg,.jpeg,.png">
+          <label for="invoice" class="file-label">
+            📄 Choose Invoice File
+          </label>
+          <span class="file-name" id="invoiceName"></span>
+        </div>
+        <div class="file-info">Accepted: PDF, JPG, PNG (Max 10MB)</div>
+      </div>
+
+      <div class="form-group">
+        <label>Purchase Order (PDF/Image)</label>
+        <div class="file-input-wrapper">
+          <input type="file" id="purchaseOrder" name="purchaseOrder" accept=".pdf,.jpg,.jpeg,.png">
+          <label for="purchaseOrder" class="file-label">
+            📋 Choose PO File
+          </label>
+          <span class="file-name" id="purchaseOrderName"></span>
+        </div>
+        <div class="file-info">Accepted: PDF, JPG, PNG (Max 10MB)</div>
+      </div>
+
+      <div class="form-group">
+        <label>Photos (Up to 5)</label>
+        <div class="file-input-wrapper">
+          <input type="file" id="photos" name="photos" accept=".jpg,.jpeg,.png,.gif" multiple>
+          <label for="photos" class="file-label">
+            📷 Choose Photos
+          </label>
+          <span class="file-name" id="photosName"></span>
+        </div>
+        <div class="file-info">Accepted: JPG, PNG, GIF (Max 10MB each, up to 5 files)</div>
+      </div>
+
+      <div class="form-group">
+        <label>Additional Documents (Up to 3)</label>
+        <div class="file-input-wrapper">
+          <input type="file" id="additionalDocs" name="additionalDocs" accept=".pdf,.doc,.docx,.xls,.xlsx" multiple>
+          <label for="additionalDocs" class="file-label">
+            📁 Choose Documents
+          </label>
+          <span class="file-name" id="additionalDocsName"></span>
+        </div>
+        <div class="file-info">Accepted: PDF, DOC, DOCX, XLS, XLSX (Max 10MB each, up to 3 files)</div>
+      </div>
+
+      <button type="submit" class="btn" id="submitBtn">Submit RMA Request</button>
+    </form>
+
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <p style="margin-top: 10px; color: #666;">Submitting your request...</p>
+    </div>
+
+    <div id="response" class="response"></div>
+  </div>
+
+  <script>
+    const API_URL = 'http://localhost:4000/api/rma/submit';
+
+    // File input handlers
+    document.getElementById('invoice').addEventListener('change', function(e) {
+      document.getElementById('invoiceName').textContent = e.target.files[0]?.name || '';
+    });
+
+    document.getElementById('purchaseOrder').addEventListener('change', function(e) {
+      document.getElementById('purchaseOrderName').textContent = e.target.files[0]?.name || '';
+    });
+
+    document.getElementById('photos').addEventListener('change', function(e) {
+      const count = e.target.files.length;
+      document.getElementById('photosName').textContent = count > 0 ? `${count} file(s) selected` : '';
+    });
+
+    document.getElementById('additionalDocs').addEventListener('change', function(e) {
+      const count = e.target.files.length;
+      document.getElementById('additionalDocsName').textContent = count > 0 ? `${count} file(s) selected` : '';
+    });
+
+    // Form submission
+    document.getElementById('rmaForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const formData = new FormData();
+      
+      // Add text fields
+      formData.append('serialNumber', document.getElementById('serialNumber').value);
+      formData.append('rmaType', document.getElementById('rmaType').value);
+      formData.append('issueDescription', document.getElementById('issueDescription').value);
+      formData.append('reportedBy', document.getElementById('reportedBy').value);
+      formData.append('priority', document.getElementById('priority').value);
+      
+      const email = document.getElementById('reportedByEmail').value;
+      const phone = document.getElementById('reportedByPhone').value;
+      if (email) formData.append('reportedByEmail', email);
+      if (phone) formData.append('reportedByPhone', phone);
+
+      // Add files
+      const invoice = document.getElementById('invoice').files[0];
+      if (invoice) formData.append('invoice', invoice);
+
+      const po = document.getElementById('purchaseOrder').files[0];
+      if (po) formData.append('purchaseOrder', po);
+
+      const photos = document.getElementById('photos').files;
+      for (let i = 0; i < photos.length; i++) {
+        formData.append('photos', photos[i]);
+      }
+
+      const docs = document.getElementById('additionalDocs').files;
+      for (let i = 0; i < docs.length; i++) {
+        formData.append('additionalDocs', docs[i]);
+      }
+
+      // Show loading
+      document.getElementById('submitBtn').disabled = true;
+      document.getElementById('loading').style.display = 'block';
+      document.getElementById('response').style.display = 'none';
+
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await response.json();
+
+        // Hide loading
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('submitBtn').disabled = false;
+
+        // Show response
+        const responseDiv = document.getElementById('response');
+        responseDiv.style.display = 'block';
+
+        if (response.ok && data.success) {
+          responseDiv.className = 'response success';
+          responseDiv.innerHTML = `
+            <h3>✅ ${data.message}</h3>
+            <p><strong>RMA Number:</strong> ${data.rma.rmaNumber}</p>
+            <p><strong>Status:</strong> ${data.rma.status}</p>
+            <p>You will be notified once an admin reviews your request.</p>
+          `;
+          
+          // Reset form
+          document.getElementById('rmaForm').reset();
+          document.querySelectorAll('.file-name').forEach(el => el.textContent = '');
+        } else {
+          responseDiv.className = 'response error';
+          responseDiv.innerHTML = `
+            <h3>❌ Error</h3>
+            <p>${data.message || 'Failed to submit RMA'}</p>
+          `;
+        }
+
+        // Scroll to response
+        responseDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+      } catch (error) {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('submitBtn').disabled = false;
+        
+        const responseDiv = document.getElementById('response');
+        responseDiv.style.display = 'block';
+        responseDiv.className = 'response error';
+        responseDiv.innerHTML = `
+          <h3>❌ Error</h3>
+          <p>Network error: ${error.message}</p>
+          <p>Please check if the server is running on ${API_URL}</p>
+        `;
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,383 @@
+{
+  "info": {
+    "name": "RMA API Collection",
+    "description": "Complete API collection for RMA (Return Merchandise Authorization) system",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "User - Submit RMA with Files",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "serialNumber",
+              "value": "SN12345",
+              "type": "text"
+            },
+            {
+              "key": "rmaType",
+              "value": "repair",
+              "type": "text",
+              "description": "Options: repair, replacement, refund"
+            },
+            {
+              "key": "issueDescription",
+              "value": "Device screen not working properly",
+              "type": "text"
+            },
+            {
+              "key": "reportedBy",
+              "value": "John Doe",
+              "type": "text"
+            },
+            {
+              "key": "reportedByEmail",
+              "value": "john@example.com",
+              "type": "text"
+            },
+            {
+              "key": "reportedByPhone",
+              "value": "+1234567890",
+              "type": "text"
+            },
+            {
+              "key": "priority",
+              "value": "high",
+              "type": "text",
+              "description": "Options: low, medium, high, critical"
+            },
+            {
+              "key": "invoice",
+              "type": "file",
+              "description": "Upload invoice file"
+            },
+            {
+              "key": "purchaseOrder",
+              "type": "file",
+              "description": "Upload PO file"
+            },
+            {
+              "key": "photos",
+              "type": "file",
+              "description": "Upload photos (can add multiple)"
+            },
+            {
+              "key": "additionalDocs",
+              "type": "file",
+              "description": "Upload additional documents"
+            }
+          ]
+        },
+        "url": {
+          "raw": "http://localhost:4000/api/rma/submit",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "4000",
+          "path": ["api", "rma", "submit"]
+        }
+      }
+    },
+    {
+      "name": "Admin - Get Pending RMAs",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:4000/api/rma/admin/pending",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "4000",
+          "path": ["api", "rma", "admin", "pending"]
+        }
+      }
+    },
+    {
+      "name": "Admin - Approve RMA",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"approvedBy\": \"Admin Name\",\n  \"notes\": \"Approved for repair processing\",\n  \"estimatedReturnDate\": \"2025-12-15\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:4000/api/rma/:id/approve",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "4000",
+          "path": ["api", "rma", ":id", "approve"],
+          "variable": [
+            {
+              "key": "id",
+              "value": "RMA_ID_HERE"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Admin - Reject RMA",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"rejectedBy\": \"Admin Name\",\n  \"rejectionReason\": \"Serial number not found in system\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:4000/api/rma/:id/reject",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "4000",
+          "path": ["api", "rma", ":id", "reject"],
+          "variable": [
+            {
+              "key": "id",
+              "value": "RMA_ID_HERE"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get All RMAs",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:4000/api/rma",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "4000",
+          "path": ["api", "rma"]
+        }
+      }
+    },
+    {
+      "name": "Get All RMAs - Filtered by Status",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:4000/api/rma?status=pending_review",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "4000",
+          "path": ["api", "rma"],
+          "query": [
+            {
+              "key": "status",
+              "value": "pending_review"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get All RMAs - Filtered by Priority",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:4000/api/rma?priority=high",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "4000",
+          "path": ["api", "rma"],
+          "query": [
+            {
+              "key": "priority",
+              "value": "high"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get RMA by ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:4000/api/rma/:id",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "4000",
+          "path": ["api", "rma", ":id"],
+          "variable": [
+            {
+              "key": "id",
+              "value": "RMA_ID_HERE"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Update RMA Status",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"in_transit_to_vendor\",\n  \"updatedBy\": \"Admin Name\",\n  \"notes\": \"Shipped via FedEx - Tracking: 123456789\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:4000/api/rma/:id/status",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "4000",
+          "path": ["api", "rma", ":id", "status"],
+          "variable": [
+            {
+              "key": "id",
+              "value": "RMA_ID_HERE"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Update RMA Details",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"vendorRmaNumber\": \"VND-12345\",\n  \"shippingTrackingNumber\": \"TRACK123456\",\n  \"repairCost\": 150.00,\n  \"resolutionNotes\": \"Screen replaced, device tested\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:4000/api/rma/:id",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "4000",
+          "path": ["api", "rma", ":id"],
+          "variable": [
+            {
+              "key": "id",
+              "value": "RMA_ID_HERE"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Download Invoice",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:4000/api/rma/:id/download/invoice",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "4000",
+          "path": ["api", "rma", ":id", "download", "invoice"],
+          "variable": [
+            {
+              "key": "id",
+              "value": "RMA_ID_HERE"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Download Purchase Order",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:4000/api/rma/:id/download/purchaseOrder",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "4000",
+          "path": ["api", "rma", ":id", "download", "purchaseOrder"],
+          "variable": [
+            {
+              "key": "id",
+              "value": "RMA_ID_HERE"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Download Photo (Index 0)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:4000/api/rma/:id/download/photo/0",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "4000",
+          "path": ["api", "rma", ":id", "download", "photo", "0"],
+          "variable": [
+            {
+              "key": "id",
+              "value": "RMA_ID_HERE"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get RMA Statistics",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:4000/api/rma/stats/overview",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "4000",
+          "path": ["api", "rma", "stats", "overview"]
+        }
+      }
+    },
+    {
+      "name": "Delete RMA",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:4000/api/rma/:id",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "4000",
+          "path": ["api", "rma", ":id"],
+          "variable": [
+            {
+              "key": "id",
+              "value": "RMA_ID_HERE"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 {
   "name": "asset-management-backend",
   "version": "1.0.0",
+  "type": "module",
   "main": "node server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -18,6 +19,7 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.19.2",
     "morgan": "^1.10.1",
+    "multer": "^2.0.2",
     "node-cron": "^4.2.1",
     "socket.io": "^4.8.1"
   },
