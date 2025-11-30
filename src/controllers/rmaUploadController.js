@@ -167,9 +167,22 @@ export const downloadRMAAttachment = async (req, res) => {
   try {
     const { id, fileType, index } = req.params;
 
-    const rma = await RMA.findById(id);
+    let query = { _id: id };
+    
+    // If user is not admin, only allow access to their own RMA attachments
+    if (req.user && req.user.role !== 'admin') {
+      query = {
+        _id: id,
+        $or: [
+          { reportedByEmail: req.user.email },
+          { reportedBy: req.user.name }
+        ]
+      };
+    }
+
+    const rma = await RMA.findOne(query);
     if (!rma) {
-      return res.status(404).json({ message: "RMA not found" });
+      return res.status(404).json({ message: "RMA not found or access denied" });
     }
 
     let filePath;

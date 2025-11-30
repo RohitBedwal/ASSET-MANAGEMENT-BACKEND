@@ -33,9 +33,40 @@ const deviceSchema = new mongoose.Schema(
 
     vendor: { type: String, default: null },
     purchaseOrderNumber: { type: String, default: null },
+    invoiceNumber: { type: String, default: null },
     purchaseDate: { type: Date, default: null },
     warrantyEndDate: { type: Date, default: null },
     amcExpiryDate: { type: Date, default: null },
+
+    // Attachments for device documentation
+    attachments: {
+      invoice: {
+        filename: { type: String, default: null },
+        path: { type: String, default: null },
+        uploadedAt: { type: Date, default: null },
+      },
+      purchaseOrder: {
+        filename: { type: String, default: null },
+        path: { type: String, default: null },
+        uploadedAt: { type: Date, default: null },
+      },
+      warranty: {
+        filename: { type: String, default: null },
+        path: { type: String, default: null },
+        uploadedAt: { type: Date, default: null },
+      },
+      photos: [{
+        filename: { type: String, required: true },
+        path: { type: String, required: true },
+        uploadedAt: { type: Date, default: Date.now },
+      }],
+      manuals: [{
+        filename: { type: String, required: true },
+        path: { type: String, required: true },
+        description: { type: String, default: "" },
+        uploadedAt: { type: Date, default: Date.now },
+      }],
+    },
 
     ipAddress: { type: String, default: null },
     macAddress: { type: String, default: null },

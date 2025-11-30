@@ -17,9 +17,33 @@ export const createRMA = async (req, res) => {
       attachments,
     } = req.body;
 
-    if (!serialNumber || !rmaType || !issueDescription || !reportedBy) {
+    console.log("🔍 Debug createRMA:");
+    console.log("req.user:", req.user);
+    console.log("req.body:", req.body);
+
+    if (!serialNumber || !rmaType || !issueDescription) {
       return res.status(400).json({
-        message: "Serial number, RMA type, issue description, and reporter are required",
+        message: "Serial number, RMA type, and issue description are required",
+      });
+    }
+
+    // If user is authenticated, use their info automatically
+    let finalReportedBy = reportedBy;
+    let finalReportedByEmail = reportedByEmail;
+    
+    if (req.user) {
+      finalReportedBy = req.user.name || reportedBy;
+      finalReportedByEmail = req.user.email || reportedByEmail;
+    }
+
+    console.log("🔍 Final user data for RMA:");
+    console.log("finalReportedBy:", finalReportedBy);
+    console.log("finalReportedByEmail:", finalReportedByEmail);
+
+    // Ensure we have at least a reporter name
+    if (!finalReportedBy) {
+      return res.status(400).json({
+        message: "Reporter name is required",
       });
     }
 
@@ -36,8 +60,8 @@ export const createRMA = async (req, res) => {
       deviceId, // May be null if device not found
       rmaType,
       issueDescription,
-      reportedBy,
-      reportedByEmail,
+      reportedBy: finalReportedBy,
+      reportedByEmail: finalReportedByEmail,
       reportedByPhone,
       priority: priority || "medium",
       attachments: attachments || {},
@@ -46,10 +70,16 @@ export const createRMA = async (req, res) => {
       statusHistory: [
         {
           status: "pending_review",
-          updatedBy: reportedBy,
+          updatedBy: finalReportedBy,
           notes: "RMA submitted by user",
         },
       ],
+    });
+
+    console.log("🔍 Created RMA:", {
+      rmaNumber: rma.rmaNumber,
+      reportedBy: rma.reportedBy,
+      reportedByEmail: rma.reportedByEmail
     });
 
     // Populate the created RMA
@@ -72,7 +102,7 @@ export const createRMA = async (req, res) => {
     io.emit("admin:newRMA", {
       rmaNumber: rma.rmaNumber,
       serialNumber,
-      reportedBy,
+      reportedBy: finalReportedBy,
       priority: rma.priority,
       timestamp: new Date().toISOString(),
     });
@@ -130,7 +160,20 @@ export const getRMAs = async (req, res) => {
 // @route GET /api/rma/:id
 export const getRMAById = async (req, res) => {
   try {
-    const rma = await RMA.findById(req.params.id)
+    let query = { _id: req.params.id };
+    
+    // If user is not admin, only allow access to their own RMAs
+    if (req.user && req.user.role !== 'admin') {
+      query = {
+        _id: req.params.id,
+        $or: [
+          { reportedByEmail: req.user.email },
+          { reportedBy: req.user.name }
+        ]
+      };
+    }
+
+    const rma = await RMA.findOne(query)
       .populate({
         path: "deviceId",
         populate: { path: "categoryId", select: "name" },
@@ -139,7 +182,7 @@ export const getRMAById = async (req, res) => {
       .populate("replacementDeviceId");
 
     if (!rma) {
-      return res.status(404).json({ message: "RMA not found" });
+      return res.status(404).json({ message: "RMA not found or access denied" });
     }
 
     res.json(rma);
@@ -279,12 +322,43 @@ export const getMyRMARequests = async (req, res) => {
   try {
     const { email, phone, serialNumber } = req.query;
 
-    // If no filters provided, return recent RMAs (last 50)
+    // Build query to show only user's own RMAs
     let query = {};
     
-    if (email) query.reportedByEmail = email;
-    if (phone) query.reportedByPhone = phone;
-    if (serialNumber) query.serialNumber = serialNumber;
+    // Debug: Log user info
+    console.log("🔍 Debug getMyRMARequests:");
+    console.log("req.user:", req.user);
+    console.log("Query params:", { email, phone, serialNumber });
+    
+    // If user is authenticated, filter by their info
+    if (req.user) {
+      // More flexible matching for user RMAs
+      query.$or = [
+        { reportedByEmail: req.user.email },
+        { reportedBy: req.user.name },
+        { reportedBy: req.user.email }, // Sometimes name field contains email
+        { reportedByEmail: req.user.name } // Edge case
+      ];
+      
+      console.log("🔍 Auth user query:", JSON.stringify(query, null, 2));
+    } else {
+      // If not authenticated, require at least one filter for privacy
+      if (!email && !phone && !serialNumber) {
+        return res.status(400).json({
+          message: "Please provide email, phone, or serialNumber to fetch your RMAs",
+        });
+      }
+      
+      if (email) query.reportedByEmail = email;
+      if (phone) query.reportedByPhone = phone;
+      if (serialNumber) query.serialNumber = serialNumber;
+      
+      console.log("🔍 Non-auth query:", JSON.stringify(query, null, 2));
+    }
+
+    // Debug: Check what RMAs exist
+    const allUserRMAs = await RMA.find({}).select('reportedBy reportedByEmail serialNumber rmaNumber').lean();
+    console.log("🔍 All RMAs in DB:", allUserRMAs);
 
     const rmas = await RMA.find(query)
       .populate("deviceId")
@@ -292,6 +366,8 @@ export const getMyRMARequests = async (req, res) => {
       .populate("replacementDeviceId")
       .sort({ createdAt: -1 })
       .limit(50);
+
+    console.log("🔍 Filtered RMAs found:", rmas.length);
 
     res.json({
       count: rmas.length,
@@ -307,7 +383,22 @@ export const getMyRMARequests = async (req, res) => {
 // @route GET /api/rma/number/:rmaNumber
 export const getRMAByNumber = async (req, res) => {
   try {
-    const rma = await RMA.findOne({ rmaNumber: req.params.rmaNumber })
+    let query = { rmaNumber: req.params.rmaNumber };
+    
+    // If user is not admin, only allow access to their own RMAs
+    if (req.user && req.user.role !== 'admin') {
+      query.$and = [
+        { rmaNumber: req.params.rmaNumber },
+        {
+          $or: [
+            { reportedByEmail: req.user.email },
+            { reportedBy: req.user.name }
+          ]
+        }
+      ];
+    }
+
+    const rma = await RMA.findOne(query)
       .populate({
         path: "deviceId",
         populate: { path: "categoryId", select: "name" },
@@ -316,7 +407,7 @@ export const getRMAByNumber = async (req, res) => {
       .populate("replacementDeviceId");
 
     if (!rma) {
-      return res.status(404).json({ message: "RMA not found" });
+      return res.status(404).json({ message: "RMA not found or access denied" });
     }
 
     res.json(rma);
@@ -490,6 +581,27 @@ export const uploadRMAAttachment = async (req, res) => {
     });
   } catch (error) {
     console.error("Upload Attachment Error:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc Debug endpoint to check user and RMA data
+// @route GET /api/rma/debug/user-info
+export const debugUserInfo = async (req, res) => {
+  try {
+    console.log("🔍 Debug User Info:");
+    console.log("req.user:", req.user);
+    
+    // Get all RMAs to see what data exists
+    const allRMAs = await RMA.find({}).select('reportedBy reportedByEmail serialNumber rmaNumber createdAt').lean();
+    
+    res.json({
+      user: req.user,
+      allRMAs: allRMAs,
+      totalRMACount: allRMAs.length
+    });
+  } catch (error) {
+    console.error("Debug User Info Error:", error);
     res.status(500).json({ message: error.message });
   }
 };
