@@ -16,6 +16,7 @@ export const addDevice = async (req, res) => {
       amcExpiryDate,
       vendor,
       purchaseOrderNumber,
+      invoiceNumber,
       installedAtSite,
       ipAddress,
       macAddress,
@@ -46,6 +47,46 @@ export const addDevice = async (req, res) => {
       return res.status(400).json({ message: "Serial number already exists" });
     }
 
+    // Handle file attachments if provided
+    let attachments = {};
+    if (req.files) {
+      if (req.files.invoiceFile && req.files.invoiceFile[0]) {
+        attachments.invoice = {
+          filename: req.files.invoiceFile[0].originalname,
+          path: req.files.invoiceFile[0].path,
+          uploadedAt: new Date(),
+        };
+      }
+      if (req.files.purchaseOrderFile && req.files.purchaseOrderFile[0]) {
+        attachments.purchaseOrder = {
+          filename: req.files.purchaseOrderFile[0].originalname,
+          path: req.files.purchaseOrderFile[0].path,
+          uploadedAt: new Date(),
+        };
+      }
+      if (req.files.warrantyFile && req.files.warrantyFile[0]) {
+        attachments.warranty = {
+          filename: req.files.warrantyFile[0].originalname,
+          path: req.files.warrantyFile[0].path,
+          uploadedAt: new Date(),
+        };
+      }
+      if (req.files.photos && req.files.photos.length > 0) {
+        attachments.photos = req.files.photos.map(file => ({
+          filename: file.originalname,
+          path: file.path,
+          uploadedAt: new Date(),
+        }));
+      }
+      if (req.files.manuals && req.files.manuals.length > 0) {
+        attachments.manuals = req.files.manuals.map(file => ({
+          filename: file.originalname,
+          path: file.path,
+          uploadedAt: new Date(),
+        }));
+      }
+    }
+
     const device = await Device.create({
       sku,
       serial,
@@ -56,6 +97,7 @@ export const addDevice = async (req, res) => {
       amcExpiryDate,
       vendor,
       purchaseOrderNumber,
+      invoiceNumber,
       installedAtSite,
       ipAddress,
       macAddress,
@@ -65,6 +107,7 @@ export const addDevice = async (req, res) => {
       dataCenter,
       notes,
       categoryId,
+      ...(Object.keys(attachments).length > 0 && { attachments }),
     });
 
     // 🔔 Emit real-time notification
